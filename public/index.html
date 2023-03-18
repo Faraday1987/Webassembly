@@ -9,63 +9,26 @@
 </head>
 
 <body>
-    <h1>Webassembly Basic</h1>
+    <h1>Webassembly Advanced</h1>
+    <!-- <script src="demo.js"></script> -->
+    <script src="imports.js"></script>
+
     <script>
 
-        //Inicializar wasm con custom memory (array buffer)
-        // Se mide en paginas 20 paginas de 64kb (1.25 mb)
-        // 2 paginas de 64kb (128kb)
-        const wasmMemory = new WebAssembly.Memory({ initial: 2 })
 
-        // Leer caracteres de salida de web assembly memory
-        const readMemStr = (offset, length) => {
-            const strBuffer = new Uint8Array(wasmMemory.buffer, offset, length);
-            // const strBuffer = new Uint8Array(wasm.instance.exports.memory.buffer, offset, length);
-            // ahora se puede cambiar ya que está inicializada la memoria
-            // por --> wasm.instance.exports.memory por --> wasmMemory
-            const str = new TextDecoder().decode(strBuffer);
-            console.log(str);
-
-            //notificar y hacer uso de nuevo texto
-            window.dispatchEvent(new CustomEvent('wasmValue', { detail: str }));
+        /*
+            Llamar funcion y establecer el valor de retorno en C
+        */
+        function getNum() {
+            return 369
         }
 
-        //Escuchar los nuevos string de wasm
-        window.addEventListener('wasmValue', str => {
-            console.log('Recibed a new string from C ', str.detail);
-        })
-
-        //Import Objects
-        const importfromc = {
-            env: {
-                //Aqui especificamos el nombre de la funcion en C y la funcion que maneja la respuesta en javascript
-                numLog: console.log,
-                strLog: readMemStr,
-                memory: wasmMemory,
-            }
+        function getStr() {
+            return "Get the string in C"
         }
 
-        WebAssembly.instantiateStreaming(fetch('/program.wasm'), importfromc)
-            .then((wasm) => {
-                console.log('Wasm ready');
-                //Make the wasm object accesible
-                window.wasm = wasm;
-
-                // Log out all exported functions
-                const exportedFunctions = WebAssembly.Module.exports(wasm.module);
-                console.log(exportedFunctions);
-
-                console.log(wasm.instance.exports.getDoubbleNumber(9));
-
-                //Esto llama a la funcion en C y ejecuta console.log de la respuesta sin aplicar console.log(xxx)
-                wasm.instance.exports.getDoubble(2)
-
-                console.log(WebAssembly.Module.imports(wasm.module));
-
-                // Regresa el lugar en memoria donde se aloja el mensaje escrito en c
-                wasm.instance.exports.greet();
-            })
     </script>
+
 </body>
 
 </html>
